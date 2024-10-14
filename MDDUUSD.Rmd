@@ -1,0 +1,132 @@
+---
+title: "Mobile Device Usage & Behaviour Analysis"
+author: Abigail Asamoah
+output: html_notebook
+date: 12-October-2024
+---
+
+### Import the required libraries below
+
+```{r}
+require(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readxl)
+```
+
+### Read file and show the column names and data types, and number of observations
+```{r}
+mob_data <- read.csv("../datasets/user_behavior_dataset.csv")
+
+print("No of observations:")
+str(mob_data)
+
+summary(mob_data)
+```
+### Show the number of rows  and columns of data in the data set
+```{r}
+
+no_rows <- as.character(nrow(mob_data))
+no_columns <- as.character(ncol(mob_data))
+
+paste("There are", no_rows, " rows and", no_columns,"columns in the dataset.")
+
+```
+### Show the first 10 rows of the file for a quick review
+```{r}
+mob_data_rows <- head(mob_data, 10)
+print(mob_data_rows)
+```
+### Review and find any missing values in the columns in the dataset
+```{r}
+colSums(is.na(mob_data))
+
+```
+### Review and find any missing values in the columns in the dataset
+
+```{r}
+duplicates <- mob_data[duplicated(mob_data),]
+duplicates
+```
+
+### Que.1 Which operating System has the largest users? 
+```{r}
+#Grouping users by operating systems used
+mob_data %>% 
+  group_by(Operating.System) %>% 
+  tally()
+
+```
+
+
+### Que.2 What are the types of devices we have across the two operating systems?
+```{r}
+
+library(dplyr)
+mob_data %>% 
+  group_by(Device.Model) %>% 
+  tally()
+```
+
+### Que.3 What is the average screen time hours per day?
+```{r}
+print("The average screen hours in any given day:")
+mean(mob_data$App.Usage.Time..min.day)
+
+```
+
+### Que.4 Calculate the proportion of iOS users and identify number of apps by device model
+```{r}
+mob_data %>%
+  filter(Operating.System == "iOS") %>%
+  group_by(Device.Model) %>%
+  summarise(no_apps = (round(mean(Number.of.Apps.Installed), digits=0))) %>%
+  arrange(desc(no_apps))
+
+```
+
+### Que.5 Calculate the proportion of Android users and identify number of apps by device model 
+```{r}
+mob_data %>%
+  filter(Operating.System == "Android") %>%
+  group_by(Device.Model) %>%
+  summarise(no_apps = (round(mean(Number.of.Apps.Installed), digits=0))) %>%
+  arrange(desc(no_apps))
+
+```
+
+### Que. 6 What is the total number of users by age group?
+```{r}
+mob_data["age_group"] = cut(mob_data$Age, c(0, 16, 35, 48, 64, Inf), c("0-16", "16-35", "35-48", "48-64", ">64"), include.lowest=TRUE)
+mob_data %>% 
+  group_by(age_group) %>% 
+  tally()
+
+```
+
+### Que. 7 What is the total of hours spent on screen  by age group?
+```{r}
+
+mob_data %>% 
+  group_by(age_group) %>%
+  summarise(total_screen_time = (round(sum(Screen.On.Time..hours.day.), digits=0))) %>%
+  arrange(desc(total_screen_time))
+
+
+ggplot(mob_data, aes(x=age_group, y=Screen.On.Time..hours.day.)) +
+ geom_bar(stat = "identity", width=0.4)
+
+```
+
+
+### Que. 8 What is the average battery drain time in a day for all device models?
+```{r}
+mob_data %>% 
+  group_by(Device.Model) %>%
+  summarise(battery_drain_time = (round(mean(Battery.Drain..mAh.day.), digits=0))) %>%
+  arrange(desc(battery_drain_time))
+
+ggplot(mob_data, aes(x=Device.Model, y=Battery.Drain..mAh.day.)) +
+ geom_bar(stat = "identity", width=0.4)
+```
+
